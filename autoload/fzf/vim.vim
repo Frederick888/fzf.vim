@@ -620,14 +620,18 @@ endfunction
 " ------------------------------------------------------------------
 
 function! s:get_git_root()
-  let bufdir = expand('%:p:h')
-  let path_separator = s:is_win ? '\' : '/'
-  let bufdir_components = split(bufdir, path_separator)
-  let git_dir_index = index(bufdir_components, '.git')
-  if git_dir_index > 0
-    let bufdir = (s:is_win ? '' : '/') . join(bufdir_components[:git_dir_index - 1], path_separator)
+  if get(g:, 'fzf_git_auto_chdir', v:true)
+    let bufdir = expand('%:p:h')
+    let path_separator = s:is_win ? '\' : '/'
+    let bufdir_components = split(bufdir, path_separator)
+    let git_dir_index = index(bufdir_components, '.git')
+    if git_dir_index > 0
+      let bufdir = (s:is_win ? '' : '/') . join(bufdir_components[:git_dir_index - 1], path_separator)
+    endif
+    let root = split(system('git -C ' . bufdir . ' rev-parse --show-toplevel'), '\n')[0]
+  else
+    let root = split(system('git rev-parse --show-toplevel'), '\n')[0]
   endif
-  let root = split(system('git -C ' . bufdir . ' rev-parse --show-toplevel'), '\n')[0]
   return v:shell_error ? '' : root
 endfunction
 
